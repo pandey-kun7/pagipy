@@ -1,0 +1,40 @@
+{
+  "name": "pagipy",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Time Machine — Agentic version-history application for public webpages",
+  "main": "dist/backend/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsx src/backend/index.ts",
+    "dev": "tsx watch src/backend/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "migrate": "tsx src/backend/db/migrate.ts",
+    "seed": "tsx src/backend/db/seedRealPages.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "luxon": "^3.5.0",
+    "pg": "^8.13.1",
+    "playwright-core": "^1.64.1",
+    "uuid": "^11.1.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/luxon": "^3.4.2",
+    "@types/node": "^22.13.5",
+    "@types/pg": "^8.11.11",
+    "@types/uuid": "^10.0.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.7"
+  }
+}

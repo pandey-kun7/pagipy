@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pagipy — Agentic Webpage Version History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #fbfbfa;
+      color: #191919;
+    }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+
+    /* Custom Notion-like scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1ef;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #d3d1cb;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #b4b2ac;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+  <!-- Top Navigation Bar (Notion Style) -->
+  <header class="border-b border-[#e3e2e0] bg-white/90 backdrop-blur sticky top-0 z-40">
+    <div class="w-full px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between">
+      <!-- Logo & Branding -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
+        <div class="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center font-bold text-lg shadow-sm font-sans select-none tracking-tight">
+          p
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-base text-slate-900 tracking-tight">pagipy</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#fdecc8] text-[#78350f]">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#d97706] mr-1"></span>2.0
+            </span>
+          </div>
+          <span class="block text-[11px] text-slate-500 font-medium">Agentic Webpage History</span>
+        </div>
+      </div>
+
+      <!-- Center Navigation Tabs (Notion Segmented Control) -->
+      <nav class="hidden md:flex space-x-1 bg-[#f2f1ee] p-1 rounded-xl border border-[#e3e2e0] text-xs font-medium">
+        <button id="tab-dashboard" onclick="switchTab('dashboard')" class="px-3.5 py-1.5 rounded-lg text-slate-900 bg-white shadow-xs font-semibold transition">
+          <i class="fa-solid fa-table-columns mr-1.5 text-blue-600"></i>Dashboard
+        </button>
+        <button id="tab-runs" onclick="switchTab('runs')" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 transition">
+          <i class="fa-solid fa-list-check mr-1.5 text-slate-500"></i>Runs
+        </button>
+        <button id="tab-comparator" onclick="switchTab('comparator')" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 transition">
+          <i class="fa-solid fa-code-compare mr-1.5 text-slate-500"></i>Comparator
+        </button>
+        <button id="tab-qa" onclick="switchTab('qa')" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 transition">
+          <i class="fa-solid fa-robot mr-1.5 text-slate-500"></i>Historical Q&A
+        </button>
+      </nav>
+
+      <!-- Right Controls -->
+      <div class="flex items-center space-x-3">
+        <div id="health-indicator" class="flex items-center space-x-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-xs text-emerald-700 font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>System Healthy</span>
+        </div>
+        <button onclick="openAddModal()" class="px-3.5 py-2 bg-[#0075eb] hover:bg-[#0066d6] text-white font-medium text-xs rounded-lg shadow-sm flex items-center space-x-1.5 transition active:scale-[0.98]">
+          <i class="fa-solid fa-plus"></i>
+          <span>Add Monitor</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Body -->
+  <main class="flex-1 w-full px-4 sm:px-6 lg:px-10 py-8">
+
+    <!-- 1. DASHBOARD VIEW -->
+    <div id="view-dashboard" class="space-y-8">
+      <!-- Stats Cards (Notion Clean White) -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white border border-[#e3e2e0] rounded-xl p-5 shadow-xs hover:border-slate-300 transition">
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Monitors</div>
+          <div id="stat-total" class="mt-2 text-3xl font-extrabold text-slate-900">0</div>
+          <div class="mt-1 text-xs text-slate-500">Public web targets</div>
+        </div>
+        <div class="bg-white border border-[#e3e2e0] rounded-xl p-5 shadow-xs hover:border-slate-300 transition">
+          <div class="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider">Active Monitoring</div>
+          <div id="stat-active" class="mt-2 text-3xl font-extrabold text-emerald-600">0</div>
+          <div class="mt-1 text-xs text-slate-500">Hourly / Daily / Weekly</div>
+        </div>
+        <div class="bg-white border border-[#e3e2e0] rounded-xl p-5 shadow-xs hover:border-slate-300 transition">
+          <div class="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">Paused</div>
+          <div id="stat-paused" class="mt-2 text-3xl font-extrabold text-amber-600">0</div>
+          <div class="mt-1 text-xs text-slate-500">Temporarily halted</div>
+        </div>
+        <div class="bg-white border border-[#e3e2e0] rounded-xl p-5 shadow-xs hover:border-slate-300 transition">
+          <div class="text-[11px] font-semibold text-[#0075eb] uppercase tracking-wider">Paired Executions</div>
+          <div id="stat-executions" class="mt-2 text-2xl font-bold text-[#0075eb] leading-tight">Both Engines</div>
+          <div class="mt-1 text-xs text-slate-500">TinyFish Monitor + Browser</div>
+        </div>
+      </div>
+
+      <!-- Filters & Search -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-between items-center">
+        <div class="relative w-full sm:w-96 md:w-[460px]">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+          <input id="search-input" oninput="debounceSearch()" type="text" placeholder="Search by name or URL..." class="w-full bg-white border border-[#e3e2e0] rounded-lg pl-10 pr-4 py-2 text-sm text-slate-900 placeholder-slate-400 shadow-xs focus:outline-none focus:border-[#0075eb] focus:ring-1 focus:ring-[#0075eb]">
+        </div>
+        <div class="flex items-center space-x-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
+          <button onclick="setCategoryFilter('')" class="category-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0075eb] text-white shadow-xs">All</button>
+          <button onclick="setCategoryFilter('SaaS pricing')" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-600 border border-[#e3e2e0] hover:bg-slate-50">Pricing</button>
+          <button onclick="setCategoryFilter('Terms of service')" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-600 border border-[#e3e2e0] hover:bg-slate-50">Policies</button>
+          <button onclick="setCategoryFilter('Insurance coverage documents')" class="category-pill px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-600 border border-[#e3e2e0] hover:bg-slate-50">Insurance</button>
+        </div>
+      </div>
+
+      <!-- Pages Grid -->
+      <div id="pages-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <!-- Rendered by JS -->
+      </div>
+      <div id="pages-empty" class="hidden text-center py-16 border border-dashed border-[#e3e2e0] bg-white rounded-2xl">
+        <i class="fa-solid fa-globe text-slate-300 text-4xl mb-4"></i>
+        <h3 class="text-base font-semibold text-slate-800">No monitored pages found</h3>
+        <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">Add your first public webpage to start automated visual & content version tracking.</p>
+        <button onclick="openAddModal()" class="px-3.5 py-1.5 bg-[#0075eb] hover:bg-[#0066d6] text-white rounded-lg text-xs font-medium shadow-xs">Add Webpage</button>
+      </div>
+    </div>
+
+    <!-- 2. TIMELINE VIEW -->
+    <div id="view-timeline" class="hidden space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-[#e3e2e0]">
+        <div>
+          <button onclick="switchTab('dashboard')" class="text-xs font-medium text-[#0075eb] hover:underline mb-1.5 flex items-center">
+            <i class="fa-solid fa-arrow-left mr-1.5"></i> Back to Dashboard
+          </button>
+          <h2 id="timeline-page-name" class="text-2xl font-bold text-slate-900 tracking-tight">Page Timeline</h2>
+          <a id="timeline-page-url" href="#" target="_blank" class="text-xs text-slate-500 hover:text-slate-800 flex items-center mt-1">
+            <i class="fa-solid fa-arrow-up-right-from-square mr-1.5 text-[10px]"></i><span></span>
+          </a>
+        </div>
+        <div class="flex space-x-2">
+          <button id="timeline-run-btn" onclick="triggerTimelineRun()" class="px-3.5 py-2 bg-white hover:bg-slate-50 border border-[#e3e2e0] text-xs font-medium rounded-lg text-slate-800 shadow-xs flex items-center space-x-2 transition">
+            <i class="fa-solid fa-play text-[#0075eb]"></i><span>Run Check Now</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="timeline-stream" class="space-y-6 relative before:absolute before:inset-0 before:left-5 before:w-0.5 before:bg-[#e3e2e0]">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- 3. VERSION COMPARATOR VIEW -->
+    <div id="view-comparator" class="hidden space-y-6">
+      <div class="pb-4 border-b border-[#e3e2e0]">
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Version & Date Comparator</h2>
+        <p class="text-xs text-slate-500 mt-1">Compare any two historical snapshots or dates for factual changes.</p>
+      </div>
+
+      <!-- Comparator Controls -->
+      <div class="bg-white border border-[#e3e2e0] rounded-xl p-6 space-y-5 shadow-xs">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1.5">Monitored Page</label>
+            <select id="comp-page-select" onchange="onComparatorPageSelect()" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-3 py-2 text-xs text-slate-900 shadow-xs focus:outline-none focus:border-[#0075eb]">
+              <option value="">Select page...</option>
+            </select>
+            <span class="block text-[11px] text-slate-400 mt-1.5">Select page to load version history</span>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1.5">Earlier Snapshot (Version / Date)</label>
+            <select id="comp-ver1" onchange="onComparatorVerSelect('from')" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-3 py-2 text-xs text-slate-900 shadow-xs mb-2 focus:outline-none focus:border-[#0075eb]">
+              <option value="">Select version...</option>
+            </select>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs text-slate-400 whitespace-nowrap">Date:</span>
+              <input id="comp-date1" type="datetime-local" onchange="onComparatorDateInput('from')" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-2 py-1.5 text-xs text-slate-700">
+            </div>
+            <div id="comp-date1-display" class="text-xs text-[#0075eb] font-medium mt-1"></div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1.5">Later Snapshot (Version / Date)</label>
+            <select id="comp-ver2" onchange="onComparatorVerSelect('to')" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-3 py-2 text-xs text-slate-900 shadow-xs mb-2 focus:outline-none focus:border-[#0075eb]">
+              <option value="">Select version...</option>
+            </select>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs text-slate-400 whitespace-nowrap">Date:</span>
+              <input id="comp-date2" type="datetime-local" onchange="onComparatorDateInput('to')" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-2 py-1.5 text-xs text-slate-700">
+            </div>
+            <div id="comp-date2-display" class="text-xs text-[#0075eb] font-medium mt-1"></div>
+          </div>
+        </div>
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-4 border-t border-[#f2f1ee]">
+          <div class="text-xs text-slate-500">
+            <i class="fa-solid fa-circle-info mr-1 text-[#0075eb]"></i>
+            Compare any two historical versions or pick arbitrary past dates to evaluate changes.
+          </div>
+          <button onclick="runComparison()" class="w-full sm:w-auto px-5 py-2.5 bg-[#0075eb] hover:bg-[#0066d6] font-semibold text-xs rounded-lg text-white shadow-sm flex items-center justify-center space-x-2 transition">
+            <i class="fa-solid fa-code-compare"></i>
+            <span>Compare Snapshots</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Comparator Results -->
+      <div id="comp-results" class="hidden space-y-6">
+        <!-- Gemma AI Explanation Banner (Notion AI Style) -->
+        <div id="comp-summary-box" class="bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-purple-50/60 border border-blue-200/80 rounded-xl p-6 shadow-xs">
+          <div class="flex items-center space-x-2 text-blue-700 text-xs font-bold uppercase tracking-wider">
+            <i class="fa-solid fa-wand-magic-sparkles text-blue-600"></i>
+            <span>Gemma Analysis & Structured Diff Explanation</span>
+          </div>
+          <div id="comp-summary-text" class="mt-2 text-base text-slate-900 leading-relaxed font-medium"></div>
+          <div id="comp-summary-bullets" class="mt-3 flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Side by Side Visuals -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white border border-[#e3e2e0] rounded-xl overflow-hidden flex flex-col shadow-xs">
+            <div class="px-5 py-3 bg-[#fbfbfa] border-b border-[#e3e2e0] flex justify-between items-center">
+              <span id="comp-left-title" class="text-xs font-bold text-slate-700 uppercase tracking-wider">Snapshot A (Before)</span>
+              <div class="flex items-center space-x-3">
+                <span id="comp-left-time" class="text-xs text-slate-500 font-mono"></span>
+                <button onclick="openImageModal(document.getElementById('comp-left-img').src)" class="text-xs text-[#0075eb] hover:text-[#0066d6] px-2.5 py-1 rounded-md bg-white border border-[#e3e2e0] shadow-xs hover:bg-slate-50 transition flex items-center space-x-1" title="Full screen">
+                  <i class="fa-solid fa-expand text-[10px]"></i>
+                  <span>Enlarge</span>
+                </button>
+              </div>
+            </div>
+            <div class="p-3 bg-[#f7f6f3] flex-1 overflow-y-auto max-h-[700px] flex justify-center border-t border-[#e3e2e0]">
+              <img id="comp-left-img" src="" alt="Before Screenshot" class="w-full h-auto object-top rounded-lg border border-[#e3e2e0] shadow-sm cursor-pointer hover:opacity-95 transition" onclick="openImageModal(this.src)" title="Click to view full screen">
+            </div>
+          </div>
+          <div class="bg-white border border-[#e3e2e0] rounded-xl overflow-hidden flex flex-col shadow-xs">
+            <div class="px-5 py-3 bg-[#fbfbfa] border-b border-[#e3e2e0] flex justify-between items-center">
+              <span id="comp-right-title" class="text-xs font-bold text-slate-700 uppercase tracking-wider">Snapshot B (After)</span>
+              <div class="flex items-center space-x-3">
+                <span id="comp-right-time" class="text-xs text-slate-500 font-mono"></span>
+                <button onclick="openImageModal(document.getElementById('comp-right-img').src)" class="text-xs text-[#0075eb] hover:text-[#0066d6] px-2.5 py-1 rounded-md bg-white border border-[#e3e2e0] shadow-xs hover:bg-slate-50 transition flex items-center space-x-1" title="Full screen">
+                  <i class="fa-solid fa-expand text-[10px]"></i>
+                  <span>Enlarge</span>
+                </button>
+              </div>
+            </div>
+            <div class="p-3 bg-[#f7f6f3] flex-1 overflow-y-auto max-h-[700px] flex justify-center border-t border-[#e3e2e0]">
+              <img id="comp-right-img" src="" alt="After Screenshot" class="w-full h-auto object-top rounded-lg border border-[#e3e2e0] shadow-sm cursor-pointer hover:opacity-95 transition" onclick="openImageModal(this.src)" title="Click to view full screen">
+            </div>
+          </div>
+        </div>
+
+        <!-- Structured Diff Sections -->
+        <div class="bg-white border border-[#e3e2e0] rounded-xl p-6 space-y-4 shadow-xs">
+          <h3 class="text-base font-bold text-slate-900 flex items-center">
+            <i class="fa-solid fa-code-fork mr-2 text-[#0075eb]"></i> Deterministic Structured Differences
+          </h3>
+          <div id="comp-diff-sections" class="space-y-3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. HISTORICAL QA VIEW -->
+    <div id="view-qa" class="hidden space-y-6">
+      <div class="pb-4 border-b border-[#e3e2e0]">
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Historical Question & Answer</h2>
+        <p class="text-xs text-slate-500 mt-1">Ask questions about what a monitored page said on any past date.</p>
+      </div>
+
+      <div class="bg-white border border-[#e3e2e0] rounded-xl p-6 space-y-5 shadow-xs w-full">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1.5">Monitored Webpage</label>
+            <select id="qa-page-select" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-3 py-2 text-xs text-slate-900 shadow-xs focus:outline-none focus:border-[#0075eb]">
+              <option value="">Select page...</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1.5">Historical As-Of Date & Time</label>
+            <input id="qa-as-of-date" type="datetime-local" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-3 py-2 text-xs text-slate-900 shadow-xs focus:outline-none focus:border-[#0075eb]">
+          </div>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 items-end">
+          <div class="flex-1 w-full">
+            <label class="block text-xs font-medium text-slate-700 mb-1.5">Your Question</label>
+            <input id="qa-question" type="text" placeholder="e.g. What was the price of bitcoin? What were the refund terms?" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-3.5 py-2 text-sm text-slate-900 placeholder-slate-400 shadow-xs focus:outline-none focus:border-[#0075eb]">
+          </div>
+          <button onclick="askHistoricalQuestion()" class="w-full sm:w-auto px-5 py-2 bg-[#0075eb] hover:bg-[#0066d6] font-semibold text-xs rounded-lg text-white shadow-sm whitespace-nowrap flex items-center justify-center space-x-1.5 transition">
+            <i class="fa-solid fa-robot"></i>
+            <span>Ask History</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="qa-result-box" class="hidden bg-white border border-[#e3e2e0] rounded-xl p-6 space-y-6 shadow-xs w-full">
+        <div class="flex items-center space-x-2 text-blue-700 text-xs font-bold uppercase tracking-wider">
+          <i class="fa-solid fa-certificate"></i>
+          <span>Grounded Historical Snapshot Evidence</span>
+        </div>
+        <div id="qa-answer-text" class="text-slate-900 text-base leading-relaxed whitespace-pre-wrap bg-blue-50/50 border border-blue-200/60 p-5 rounded-xl font-medium"></div>
+        
+        <div class="pt-4 border-t border-[#f2f1ee] grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <div class="bg-[#fbfbfa] border border-[#e3e2e0] rounded-xl p-4 flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Archived Snapshot Excerpt</span>
+              <span class="text-[11px] text-blue-600 font-mono">markdown content</span>
+            </div>
+            <pre id="qa-excerpt" class="bg-[#f7f6f3] p-4 rounded-lg text-xs leading-relaxed text-slate-800 border border-[#e3e2e0] overflow-y-auto max-h-[580px] whitespace-pre-wrap break-words font-mono shadow-inner"></pre>
+          </div>
+          <div class="bg-[#fbfbfa] border border-[#e3e2e0] rounded-xl p-4 flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Verified Screenshot Evidence</span>
+              <button onclick="openImageModal(document.getElementById('qa-screenshot').src)" class="text-xs text-[#0075eb] hover:text-[#0066d6] px-2.5 py-1 rounded-md bg-white border border-[#e3e2e0] shadow-xs hover:bg-slate-50 transition flex items-center space-x-1">
+                <i class="fa-solid fa-expand text-[10px]"></i>
+                <span>Enlarge</span>
+              </button>
+            </div>
+            <div class="bg-[#f7f6f3] rounded-lg p-3 border border-[#e3e2e0] overflow-y-auto max-h-[580px] flex justify-center">
+              <img id="qa-screenshot" src="" alt="Screenshot" class="w-full h-auto object-top rounded-lg border border-[#e3e2e0] shadow-sm cursor-pointer hover:opacity-95 transition" onclick="openImageModal(this.src)" title="Click to view full screen">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. RECENT RUNS VIEW -->
+    <div id="view-runs" class="hidden space-y-6">
+      <div class="pb-4 border-b border-[#e3e2e0]">
+        <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Recent Execution Runs</h2>
+        <p class="text-xs text-slate-500 mt-1">Audit log of all scheduled and manual paired runs invoking TinyFish Monitor and Browser.</p>
+      </div>
+
+      <div class="bg-white border border-[#e3e2e0] rounded-xl shadow-xs overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-700">
+          <thead class="bg-[#fbfbfa] text-xs font-bold text-slate-500 uppercase border-b border-[#e3e2e0]">
+            <tr>
+              <th class="px-6 py-3.5">Page</th>
+              <th class="px-6 py-3.5">Trigger</th>
+              <th class="px-6 py-3.5">Status</th>
+              <th class="px-6 py-3.5">Monitor</th>
+              <th class="px-6 py-3.5">Browser</th>
+              <th class="px-6 py-3.5">Completed</th>
+            </tr>
+          </thead>
+          <tbody id="runs-table-body" class="divide-y divide-[#f2f1ee]">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ADD MONITOR MODAL (Notion Modal Style) -->
+  <div id="add-modal" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white border border-[#e3e2e0] rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between pb-3 border-b border-[#f2f1ee]">
+        <h3 class="text-base font-bold text-slate-900 flex items-center">
+          <i class="fa-solid fa-plus mr-2 text-[#0075eb]"></i> Add Webpage to Monitor
+        </h3>
+        <button onclick="closeAddModal()" class="text-slate-400 hover:text-slate-700 w-7 h-7 rounded-lg flex items-center justify-center hover:bg-slate-100 transition"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+
+      <form id="add-monitor-form" onsubmit="submitAddMonitor(event)" class="space-y-4">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-semibold text-slate-700">Public Webpage URL *</label>
+            <button type="button" onclick="triggerPreflight()" class="text-[11px] text-[#0075eb] hover:underline flex items-center space-x-1 font-medium">
+              <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+              <span>Preflight Validate</span>
+            </button>
+          </div>
+          <div class="flex gap-2">
+            <input id="modal-url" type="url" required placeholder="https://example.com/pricing" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-3 py-2 text-xs text-slate-900 placeholder-slate-400 shadow-xs focus:outline-none focus:border-[#0075eb]">
+            <button type="button" onclick="triggerPreflight()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-[#e3e2e0] rounded-lg text-xs font-medium text-slate-700 whitespace-nowrap transition">
+              Test URL
+            </button>
+          </div>
+        </div>
+
+        <div id="modal-preflight-box" class="hidden bg-blue-50/60 border border-blue-200 rounded-lg p-3 text-xs space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-blue-700 flex items-center"><i class="fa-solid fa-circle-check mr-1.5 text-emerald-600"></i>Preflight Verified</span>
+            <span id="modal-preflight-status" class="text-[10px] uppercase font-bold text-emerald-700">Suitable</span>
+          </div>
+          <div id="modal-preflight-title" class="text-slate-800 font-medium truncate"></div>
+          <div id="modal-preflight-details" class="text-slate-500 text-[11px]"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Display Name (Optional)</label>
+          <input id="modal-name" type="text" placeholder="e.g. Acme SaaS Pricing" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-3 py-2 text-xs text-slate-900 placeholder-slate-400 shadow-xs focus:outline-none focus:border-[#0075eb]">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Category</label>
+            <input id="modal-category" type="text" placeholder="SaaS pricing" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-3 py-2 text-xs text-slate-900 shadow-xs focus:outline-none focus:border-[#0075eb]">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Schedule Frequency *</label>
+            <select id="modal-schedule-type" onchange="onScheduleTypeChange()" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-2.5 py-2 text-xs text-slate-900 shadow-xs focus:outline-none focus:border-[#0075eb]">
+              <option value="hourly">Hourly (Continuous)</option>
+              <option value="daily" selected>Daily</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Schedule Options Fields -->
+        <div id="modal-schedule-fields" class="grid grid-cols-3 gap-2 bg-[#fbfbfa] p-3 rounded-lg border border-[#e3e2e0]">
+          <div id="field-weekday" class="hidden">
+            <label class="block text-[10px] font-medium text-slate-500 mb-1">Day</label>
+            <select id="modal-weekday" class="w-full bg-white border border-[#e3e2e0] rounded-md px-2 py-1 text-xs text-slate-800">
+              <option value="1">Mon</option><option value="2">Tue</option><option value="3">Wed</option>
+              <option value="4">Thu</option><option value="5">Fri</option><option value="6">Sat</option><option value="7">Sun</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-medium text-slate-500 mb-1">Time (Local)</label>
+            <input id="modal-time" type="time" value="09:00" class="w-full bg-white border border-[#e3e2e0] rounded-md px-2 py-1 text-xs text-slate-800">
+          </div>
+          <div>
+            <label class="block text-[10px] font-medium text-slate-500 mb-1">Timezone</label>
+            <select id="modal-tz" class="w-full bg-white border border-[#e3e2e0] rounded-md px-2 py-1 text-xs text-slate-800">
+              <option value="Asia/Kolkata" selected>India (IST)</option>
+              <option value="UTC">UTC</option>
+              <option value="America/New_York">US Eastern</option>
+              <option value="Europe/London">London</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Monitoring Objective</label>
+          <textarea id="modal-objective" rows="2" placeholder="e.g. Track changes in subscription tiers and refund terms" class="w-full bg-white border border-[#e3e2e0] rounded-lg px-3 py-2 text-xs text-slate-900 placeholder-slate-400 shadow-xs focus:outline-none focus:border-[#0075eb]"></textarea>
+        </div>
+
+        <div id="modal-error" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-lg p-3 font-medium"></div>
+
+        <div class="flex justify-end space-x-2 pt-2 border-t border-[#f2f1ee]">
+          <button type="button" onclick="closeAddModal()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition">Cancel</button>
+          <button id="modal-submit-btn" type="submit" class="px-4 py-1.5 bg-[#0075eb] hover:bg-[#0066d6] text-white rounded-lg text-xs font-semibold shadow-sm transition">Save Monitor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- IMAGE / SNAPSHOT MODAL -->
+  <div id="image-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6" onclick="closeImageModal()">
+    <div class="w-full max-w-[96vw] max-h-[96vh] bg-white border border-[#e3e2e0] rounded-2xl p-4 relative flex flex-col shadow-2xl" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 mb-2 border-b border-[#f2f1ee]">
+        <span class="text-xs font-bold text-slate-800 flex items-center uppercase tracking-wider">
+          <i class="fa-solid fa-image text-[#0075eb] mr-2"></i> Verified Full Webpage Snapshot
+        </span>
+        <button onclick="closeImageModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg flex items-center space-x-1.5 text-xs transition">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Close</span>
+        </button>
+      </div>
+      <div class="flex-1 overflow-auto flex justify-center items-start bg-[#f7f6f3] rounded-xl p-3 border border-[#e3e2e0] max-h-[86vh]">
+        <img id="modal-full-img" src="" alt="Full view" class="w-auto max-w-full h-auto rounded-lg shadow-sm object-contain">
+      </div>
+    </div>
+  </div>
+
+  <!-- VERSION GEMMA SUMMARY & SNAPSHOT MODAL (Notion Modal Style) -->
+  <div id="version-summary-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6" onclick="closeVersionSummaryModal()">
+    <div class="w-full max-w-4xl max-h-[92vh] bg-white border border-[#e3e2e0] rounded-2xl p-6 relative flex flex-col shadow-2xl space-y-4" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between pb-3 border-b border-[#f2f1ee]">
+        <div class="flex items-center space-x-3">
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600">
+            <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+          </div>
+          <div>
+            <h3 id="vsum-title" class="text-base font-bold text-slate-900">Gemma Page Summary</h3>
+            <span id="vsum-subtitle" class="text-xs text-slate-500">Synthesized directly from archived snapshot.md</span>
+          </div>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <button id="vsum-tab-summary" onclick="switchSummaryTab('summary')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0075eb] text-white shadow-xs">
+            Executive Summary
+          </button>
+          <button id="vsum-tab-raw" onclick="switchSummaryTab('raw')" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:text-slate-900 border border-[#e3e2e0]">
+            snapshot.md Raw
+          </button>
+          <button onclick="closeVersionSummaryModal()" class="ml-2 text-slate-400 hover:text-slate-700 w-7 h-7 rounded-lg flex items-center justify-center hover:bg-slate-100 transition">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Gemma AI Summary -->
+      <div id="vsum-content-summary" class="flex-1 overflow-y-auto space-y-4 pr-1">
+        <div id="vsum-loading" class="text-center py-12 text-slate-500">
+          <i class="fa-solid fa-circle-notch fa-spin text-indigo-600 text-2xl mb-3"></i>
+          <p class="text-xs font-medium">Synthesizing snapshot with Google Gemma AI...</p>
+        </div>
+
+        <div id="vsum-body" class="hidden space-y-5">
+          <!-- Executive Summary Card -->
+          <div class="bg-blue-50/60 border border-blue-200 rounded-xl p-5 space-y-2">
+            <div class="flex items-center space-x-2 text-blue-700 text-xs font-bold uppercase tracking-wider">
+              <i class="fa-solid fa-certificate"></i>
+              <span>Gemma Executive Synthesis</span>
+            </div>
+            <p id="vsum-exec" class="text-slate-900 text-sm leading-relaxed font-medium"></p>
+          </div>
+
+          <!-- Key Findings / Bullet Points -->
+          <div class="bg-white border border-[#e3e2e0] rounded-xl p-5 space-y-3 shadow-xs">
+            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center">
+              <i class="fa-solid fa-list-check mr-2 text-[#0075eb]"></i> Key Offerings, Prices, Terms & Policies
+            </h4>
+            <ul id="vsum-bullets" class="space-y-2 text-xs text-slate-700"></ul>
+          </div>
+
+          <!-- Metadata & Headings -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-[#fbfbfa] p-4 rounded-xl border border-[#e3e2e0] space-y-1 text-xs">
+              <span class="text-slate-500 font-semibold uppercase text-[10px]">Category Context:</span>
+              <p id="vsum-category" class="text-slate-800 font-medium"></p>
+              <div class="pt-2 text-[11px] text-slate-400 font-mono">
+                Model: <code id="vsum-model" class="text-indigo-600"></code> | Snapshot: <span id="vsum-size" class="text-slate-600"></span>
+              </div>
+            </div>
+            <div class="bg-[#fbfbfa] p-4 rounded-xl border border-[#e3e2e0] space-y-1 text-xs">
+              <span class="text-slate-500 font-semibold uppercase text-[10px]">Key Headings Detected:</span>
+              <div id="vsum-headings" class="flex flex-wrap gap-1.5 mt-1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Raw snapshot.md -->
+      <div id="vsum-content-raw" class="hidden flex-1 overflow-y-auto bg-[#f7f6f3] rounded-xl p-4 border border-[#e3e2e0]">
+        <pre id="vsum-raw-text" class="text-xs text-slate-800 whitespace-pre-wrap break-words font-mono leading-relaxed"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER (Notion Style) -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none max-w-sm w-full" aria-live="polite"></div>
+
+  <script>
+    let pages = [];
+    let currentCategoryFilter = '';
+    let currentTimelinePageId = '';
+
+    // ==========================================
+    // NOTION-STYLE TOAST NOTIFICATION ENGINE
+    // ==========================================
+    function showToast(message, type = 'error', title = null, durationMs = 4500) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const id = 'toast-' + Math.random().toString(36).substring(2, 9);
+      const toast = document.createElement('div');
+      toast.id = id;
+      toast.className = 'pointer-events-auto transform transition-all duration-300 ease-out translate-y-3 opacity-0 bg-white border rounded-xl shadow-xl p-3.5 flex items-start space-x-3';
+
+      let borderClass = 'border-rose-200';
+      let iconBg = 'bg-rose-50 text-rose-600';
+      let iconHtml = '<i class="fa-solid fa-circle-exclamation text-xs"></i>';
+      let defaultTitle = 'Action Failed';
+
+      if (type === 'success') {
+        borderClass = 'border-emerald-200';
+        iconBg = 'bg-emerald-50 text-emerald-700';
+        iconHtml = '<i class="fa-solid fa-circle-check text-xs"></i>';
+        defaultTitle = 'Success';
+      } else if (type === 'warning') {
+        borderClass = 'border-amber-200';
+        iconBg = 'bg-[#fdecc8] text-[#78350f]';
+        iconHtml = '<i class="fa-solid fa-triangle-exclamation text-xs"></i>';
+        defaultTitle = 'Notice';
+      } else if (type === 'info') {
+        borderClass = 'border-blue-200';
+        iconBg = 'bg-blue-50 text-blue-700';
+        iconHtml = '<i class="fa-solid fa-circle-info text-xs"></i>';
+        defaultTitle = 'Information';
+      }
+
+      borderClass.split(' ').forEach(cls => toast.classList.add(cls));
+
+      toast.innerHTML = `
+        <div class="w-7 h-7 rounded-lg ${iconBg} flex items-center justify-center shrink-0">
+          ${iconHtml}
+        </div>
+        <div class="flex-1 min-w-0 pr-1">
+          <div class="text-xs font-semibold text-slate-900">${escapeHtml(title || defaultTitle)}</div>
+          <div class="text-xs text-slate-600 mt-0.5 break-words leading-relaxed">${escapeHtml(message)}</div>
+        </div>
+        <button onclick="dismissToast('${id}')" class="text-slate-400 hover:text-slate-700 p-1 text-xs transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      `;
+
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-3', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+      });
+
+      if (durationMs > 0) {
+        setTimeout(() => dismissToast(id), durationMs);
+      }
+    }
+
+    function dismissToast(toastOrId) {
+      const el = typeof toastOrId === 'string' ? document.getElementById(toastOrId) : toastOrId;
+      if (!el) return;
+      el.classList.remove('translate-y-0', 'opacity-100');
+      el.classList.add('translate-y-2', 'opacity-0');
+      setTimeout(() => {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      }, 300);
+    }
+
+    function handleFail(err, contextTitle = 'Action Failed') {
+      const msg = err?.message || (typeof err === 'string' ? err : 'An unexpected error occurred');
+      console.error(contextTitle + ':', err);
+      showToast(msg, 'error', contextTitle);
+    }
+
+    // Global listener for unhandled JavaScript and Network errors
+    window.addEventListener('error', (event) => {
+      if (event?.message) {
+        showToast(event.message, 'error', 'Client Error');
+      }
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      const reason = event.reason?.message || (typeof event.reason === 'string' ? event.reason : 'Network or promise rejected');
+      showToast(reason, 'error', 'Request Failed');
+    });
+
+    async function init() {
+      await loadDashboard();
+      checkHealth();
+      setInterval(checkHealth, 30000);
+    }
+
+    async function checkHealth() {
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        const ind = document.getElementById('health-indicator');
+        if (data.status === 'healthy') {
+          ind.className = 'flex items-center space-x-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-xs text-emerald-700 font-medium';
+          ind.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>System Healthy</span>';
+        } else {
+          ind.className = 'flex items-center space-x-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-xs text-amber-700 font-medium';
+          ind.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>Degraded</span>';
+        }
+      } catch (err) {
+        const ind = document.getElementById('health-indicator');
+        ind.className = 'flex items-center space-x-1.5 px-3 py-1 bg-rose-50 border border-rose-200 rounded-full text-xs text-rose-700 font-medium';
+        ind.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span><span>Offline</span>';
+        showToast('Unable to connect to backend service', 'error', 'Backend Offline');
+      }
+    }
+
+    async function loadDashboard() {
+      try {
+        const [statsRes, pagesRes] = await Promise.all([
+          fetch('/api/pages/stats').then(async r => {
+            if (!r.ok) throw new Error('Stats endpoint returned ' + r.status);
+            return r.json();
+          }),
+          fetch('/api/pages').then(async r => {
+            if (!r.ok) throw new Error('Pages endpoint returned ' + r.status);
+            return r.json();
+          })
+        ]);
+
+        document.getElementById('stat-total').innerText = statsRes.total ?? 0;
+        document.getElementById('stat-active').innerText = statsRes.active ?? 0;
+        document.getElementById('stat-paused').innerText = statsRes.paused ?? 0;
+
+        pages = pagesRes.pages || [];
+        renderPagesGrid();
+        populatePageSelects();
+      } catch (err) {
+        handleFail(err, 'Dashboard Load Failed');
+      }
+    }
+
+    function renderPagesGrid() {
+      const container = document.getElementById('pages-grid');
+      const emptyBox = document.getElementById('pages-empty');
+      const search = document.getElementById('search-input').value.toLowerCase();
+
+      const filtered = pages.filter(p => {
+        const matchesCategory = !currentCategoryFilter || p.category === currentCategoryFilter;
+        const matchesSearch = !search || p.name.toLowerCase().includes(search) || p.canonical_url.toLowerCase().includes(search);
+        return matchesCategory && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        emptyBox.classList.remove('hidden');
+        return;
+      }
+
+      emptyBox.classList.add('hidden');
+      container.innerHTML = filtered.map(p => {
+        const statusBadge = p.status === 'active'
+          ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span>Active</span>'
+          : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1"></span>Paused</span>';
+
+        return `
+          <div class="bg-white border border-[#e3e2e0] rounded-xl p-5 hover:border-slate-300 hover:shadow-md transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-2">
+                <h4 class="font-bold text-sm text-slate-900 truncate tracking-tight">${escapeHtml(p.name)}</h4>
+                ${statusBadge}
+              </div>
+              <a href="${escapeHtml(p.submitted_url)}" target="_blank" class="text-xs text-slate-400 hover:text-[#0075eb] truncate block mt-1 font-mono">
+                ${escapeHtml(p.canonical_url)}
+              </a>
+              ${p.category ? `<span class="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-medium bg-[#f2f1ee] text-slate-600 border border-[#e3e2e0]">${escapeHtml(p.category)}</span>` : ''}
+              
+              <div class="mt-4 pt-3 border-t border-[#f2f1ee] space-y-1.5 text-xs text-slate-500">
+                <div class="flex justify-between">
+                  <span>Schedule:</span>
+                  <span class="text-slate-800 font-medium capitalize">${p.schedule_type} (${p.schedule_timezone})</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Next Check:</span>
+                  <span class="text-slate-700">${p.next_run_at ? new Date(p.next_run_at).toLocaleString() : 'Paused'}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Last Run:</span>
+                  <span class="text-slate-700">${p.last_run_at ? new Date(p.last_run_at).toLocaleString() : 'Never'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-5 pt-3 border-t border-[#f2f1ee] flex items-center justify-between">
+              <button onclick="openTimeline('${p.id}')" class="text-xs font-semibold text-[#0075eb] hover:underline flex items-center">
+                <i class="fa-solid fa-timeline mr-1.5"></i>Timeline
+              </button>
+              <div class="flex space-x-1.5">
+                <button onclick="triggerManualRun('${p.id}', this)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-[#e3e2e0] rounded-md text-xs font-medium text-slate-800 flex items-center space-x-1 transition">
+                  <i class="fa-solid fa-play text-[#0075eb] text-[9px]"></i><span>Run</span>
+                </button>
+                ${p.status === 'active' 
+                  ? `<button onclick="togglePause('${p.id}', 'pause')" class="px-2 py-1 bg-white hover:bg-slate-100 border border-[#e3e2e0] text-slate-600 rounded-md text-xs transition">Pause</button>`
+                  : `<button onclick="togglePause('${p.id}', 'resume')" class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 rounded-md text-xs transition">Resume</button>`
+                }
+                <button onclick="archivePage('${p.id}')" class="text-slate-400 hover:text-rose-500 p-1" title="Archive"><i class="fa-solid fa-box-archive text-xs"></i></button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function triggerManualRun(pageId, btn) {
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-[#0075eb] text-[9px]"></i><span>...</span>';
+      }
+      try {
+        const res = await fetch(`/api/pages/${pageId}/run`, { method: 'POST' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Failed to trigger run');
+        showToast('Manual observation dispatched successfully', 'success', 'Run Started');
+        setTimeout(loadDashboard, 1500);
+      } catch (err) {
+        handleFail(err, 'Manual Run Failed');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-play text-[#0075eb] text-[9px]"></i><span>Run</span>';
+        }
+      }
+    }
+
+    async function togglePause(pageId, action) {
+      try {
+        const res = await fetch(`/api/pages/${pageId}/${action}`, { method: 'POST' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `Failed to ${action} monitor`);
+        showToast(`Page monitor ${action}d successfully`, 'info', 'Status Updated');
+        loadDashboard();
+      } catch (err) {
+        handleFail(err, 'Status Update Failed');
+      }
+    }
+
+    async function archivePage(pageId) {
+      if (!confirm('Archive this monitored page? History will remain preserved.')) return;
+      try {
+        const res = await fetch(`/api/pages/${pageId}/archive`, { method: 'POST' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Failed to archive page');
+        showToast('Page archived. Historical records remain preserved.', 'info', 'Page Archived');
+        loadDashboard();
+      } catch (err) {
+        handleFail(err, 'Archive Failed');
+      }
+    }
+
+    async function openTimeline(pageId) {
+      currentTimelinePageId = pageId;
+      const page = pages.find(p => p.id === pageId);
+      if (!page) return;
+
+      document.getElementById('timeline-page-name').innerText = page.name;
+      const urlAnchor = document.getElementById('timeline-page-url');
+      urlAnchor.href = page.canonical_url;
+      urlAnchor.querySelector('span').innerText = page.canonical_url;
+
+      switchTab('timeline');
+      loadTimelineData(pageId);
+    }
+
+    async function loadTimelineData(pageId) {
+      const stream = document.getElementById('timeline-stream');
+      stream.innerHTML = '<div class="text-center py-10 text-slate-400"><i class="fa-solid fa-circle-notch fa-spin text-xl"></i></div>';
+
+      try {
+        const res = await fetch(`/api/pages/${pageId}/timeline`);
+        const versions = await res.json();
+
+        if (versions.length === 0) {
+          stream.innerHTML = `
+            <div class="ml-10 bg-white border border-[#e3e2e0] rounded-xl p-6 text-center text-slate-500 shadow-xs">
+              <i class="fa-solid fa-clock text-xl mb-2 text-slate-400"></i>
+              <p class="text-xs">No captured versions yet. Trigger a check now to record the initial baseline!</p>
+            </div>
+          `;
+          return;
+        }
+
+        stream.innerHTML = versions.map((v, i) => {
+          const isBaseline = v.version_number === 1;
+          const screenshotUrl = `/api/artifacts/${v.screenshot_artifact_path.replace(/\\/g, '/')}`;
+
+          return `
+            <div class="relative pl-10">
+              <div class="absolute left-3 top-1 w-5 h-5 rounded-full ${isBaseline ? 'bg-[#0075eb] ring-4 ring-blue-100' : 'bg-slate-700 ring-4 ring-slate-100'} flex items-center justify-center text-[10px] text-white font-bold">
+                ${v.version_number}
+              </div>
+
+              <div class="bg-white border border-[#e3e2e0] rounded-xl p-5 hover:border-slate-300 hover:shadow-sm transition space-y-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2">
+                    <span class="font-bold text-sm text-slate-900 tracking-tight">Version ${v.version_number}</span>
+                    ${isBaseline ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#fdecc8] text-[#78350f]">Baseline</span>' : '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Change Detected</span>'}
+                  </div>
+                  <span class="text-xs text-slate-400 font-mono">${new Date(v.observed_at).toLocaleString()}</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                  <div class="sm:col-span-1">
+                    <img src="${screenshotUrl}" alt="Thumbnail" class="w-full h-32 object-cover rounded-lg border border-[#e3e2e0] cursor-pointer shadow-xs hover:opacity-90 transition" onclick="openImageModal('${screenshotUrl}')">
+                  </div>
+                  <div class="sm:col-span-2 space-y-2 text-xs text-slate-600">
+                    <div><span class="text-slate-400 font-medium">Source URL:</span> <span class="break-all font-mono text-[11px] text-slate-700">${escapeHtml(v.source_url)}</span></div>
+                    <div><span class="text-slate-400 font-medium">Raw Checksum:</span> <code class="text-slate-800 bg-[#f2f1ee] px-1.5 py-0.5 rounded text-[11px]">${v.raw_content_hash.slice(0, 16)}...</code></div>
+                    <div class="pt-2 flex flex-wrap gap-2">
+                      <button onclick="openImageModal('${screenshotUrl}')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-[#e3e2e0] rounded-md text-slate-700 font-medium flex items-center text-xs transition">
+                        <i class="fa-solid fa-image mr-1.5 text-slate-500"></i> Screenshot
+                      </button>
+                      <button onclick="openVersionGemmaSummary('${v.page_id}', '${v.id}', ${v.version_number})" class="px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-blue-700 border border-blue-200 rounded-md text-xs font-semibold flex items-center transition shadow-xs">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1.5 text-blue-600"></i> Gemma Summary
+                      </button>
+                      <button onclick="openSnapshotMarkdownModal('${v.page_id}', '${v.id}', ${v.version_number})" class="px-2.5 py-1.5 bg-[#fbfbfa] hover:bg-slate-100 text-slate-700 border border-[#e3e2e0] rounded-md text-xs font-medium flex items-center transition font-mono">
+                        <i class="fa-brands fa-markdown mr-1.5 text-slate-500"></i> snapshot.md
+                      </button>
+                      ${i < versions.length - 1 ? `
+                        <button onclick="compareWithVersion('${v.page_id}', '${versions[i+1].id}', '${v.id}')" class="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#0075eb] border border-blue-200 rounded-md text-xs font-medium flex items-center transition">
+                          <i class="fa-solid fa-code-compare mr-1.5"></i> Diff with v${versions[i+1].version_number}
+                        </button>
+                      ` : ''}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        handleFail(err, 'Timeline Load Failed');
+        stream.innerHTML = `<div class="text-rose-600 p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs">Error loading timeline: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    async function triggerTimelineRun() {
+      if (!currentTimelinePageId) return;
+      const btn = document.getElementById('timeline-run-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-[#0075eb]"></i><span>Running Paired Execution...</span>';
+      try {
+        const res = await fetch(`/api/pages/${currentTimelinePageId}/run`, { method: 'POST' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Failed to trigger paired execution');
+        showToast('Paired run initiated for timeline', 'success', 'Run Started');
+        setTimeout(() => loadTimelineData(currentTimelinePageId), 2000);
+      } catch (err) {
+        handleFail(err, 'Timeline Run Failed');
+      } finally {
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-play text-[#0075eb]"></i><span>Run Check Now</span>';
+        }, 2000);
+      }
+    }
+
+    function formatDateTimeLocal(dateInput) {
+      if (!dateInput) return '';
+      const d = new Date(dateInput);
+      if (isNaN(d.getTime())) return '';
+      const pad = (n) => String(n).padStart(2, '0');
+      const YYYY = d.getFullYear();
+      const MM = pad(d.getMonth() + 1);
+      const DD = pad(d.getDate());
+      const hh = pad(d.getHours());
+      const mm = pad(d.getMinutes());
+      return `${YYYY}-${MM}-${DD}T${hh}:${mm}`;
+    }
+
+    let currentComparatorVersions = [];
+
+    async function onComparatorPageSelect() {
+      const pageId = document.getElementById('comp-page-select').value;
+      const ver1Select = document.getElementById('comp-ver1');
+      const ver2Select = document.getElementById('comp-ver2');
+      const date1Input = document.getElementById('comp-date1');
+      const date2Input = document.getElementById('comp-date2');
+
+      if (!pageId) {
+        ver1Select.innerHTML = '<option value="">Select version...</option>';
+        ver2Select.innerHTML = '<option value="">Select version...</option>';
+        date1Input.value = '';
+        date2Input.value = '';
+        currentComparatorVersions = [];
+        return;
+      }
+
+      ver1Select.innerHTML = '<option value="">Loading versions...</option>';
+      ver2Select.innerHTML = '<option value="">Loading versions...</option>';
+
+      try {
+        const res = await fetch(`/api/pages/${pageId}/timeline`);
+        currentComparatorVersions = await res.json();
+
+        if (currentComparatorVersions.length === 0) {
+          ver1Select.innerHTML = '<option value="">No versions captured yet</option>';
+          ver2Select.innerHTML = '<option value="">No versions captured yet</option>';
+          date1Input.value = '';
+          date2Input.value = '';
+          return;
+        }
+
+        const verOptions = currentComparatorVersions.map(v => 
+          `<option value="${v.id}">Version ${v.version_number} — ${new Date(v.observed_at).toLocaleString()}</option>`
+        ).join('');
+
+        ver1Select.innerHTML = '<option value="">Initial Baseline</option>' + verOptions;
+        ver2Select.innerHTML = verOptions;
+
+        if (currentComparatorVersions.length >= 2) {
+          const latestVer = currentComparatorVersions[0];
+          const oldestVer = currentComparatorVersions[currentComparatorVersions.length - 1];
+          ver1Select.value = oldestVer.id;
+          ver2Select.value = latestVer.id;
+          date1Input.value = formatDateTimeLocal(oldestVer.observed_at);
+          date2Input.value = formatDateTimeLocal(latestVer.observed_at);
+          const d1Disp = document.getElementById('comp-date1-display');
+          if (d1Disp) d1Disp.innerText = `Observed: ${new Date(oldestVer.observed_at).toLocaleString()}`;
+          const d2Disp = document.getElementById('comp-date2-display');
+          if (d2Disp) d2Disp.innerText = `Observed: ${new Date(latestVer.observed_at).toLocaleString()}`;
+          runDirectComparison(pageId, oldestVer.id, latestVer.id);
+        } else {
+          const singleVer = currentComparatorVersions[0];
+          ver1Select.value = '';
+          ver2Select.value = singleVer.id;
+          date1Input.value = '';
+          date2Input.value = formatDateTimeLocal(singleVer.observed_at);
+          const d1Disp = document.getElementById('comp-date1-display');
+          if (d1Disp) d1Disp.innerText = 'Initial baseline';
+          const d2Disp = document.getElementById('comp-date2-display');
+          if (d2Disp) d2Disp.innerText = `Observed: ${new Date(singleVer.observed_at).toLocaleString()}`;
+          runDirectComparison(pageId, '', singleVer.id);
+        }
+      } catch (err) {
+        handleFail(err, 'Failed to Load Page Versions');
+      }
+    }
+
+    function onComparatorVerSelect(which) {
+      const verId = document.getElementById(which === 'from' ? 'comp-ver1' : 'comp-ver2').value;
+      const dateInput = document.getElementById(which === 'from' ? 'comp-date1' : 'comp-date2');
+      const dispEl = document.getElementById(which === 'from' ? 'comp-date1-display' : 'comp-date2-display');
+      if (!verId) {
+        if (which === 'from') {
+          dateInput.value = '';
+          if (dispEl) dispEl.innerText = 'Initial baseline';
+        }
+        return;
+      }
+      const ver = currentComparatorVersions.find(v => v.id === verId);
+      if (ver) {
+        dateInput.value = formatDateTimeLocal(ver.observed_at);
+        if (dispEl) dispEl.innerText = `Observed: ${new Date(ver.observed_at).toLocaleString()}`;
+      }
+    }
+
+    function onComparatorDateInput(which) {
+      const dateVal = document.getElementById(which === 'from' ? 'comp-date1' : 'comp-date2').value;
+      const dispEl = document.getElementById(which === 'from' ? 'comp-date1-display' : 'comp-date2-display');
+      if (!dateVal) {
+        if (dispEl) dispEl.innerText = '';
+        return;
+      }
+      if (dispEl) dispEl.innerText = `Selected: ${new Date(dateVal).toLocaleString()}`;
+      if (currentComparatorVersions.length === 0) return;
+      const targetTime = new Date(dateVal).getTime();
+      const pastVersions = currentComparatorVersions
+        .filter(v => new Date(v.observed_at).getTime() <= targetTime)
+        .sort((a, b) => new Date(b.observed_at).getTime() - new Date(a.observed_at).getTime());
+      const matched = pastVersions[0] || currentComparatorVersions[currentComparatorVersions.length - 1];
+      if (matched) {
+        document.getElementById(which === 'from' ? 'comp-ver1' : 'comp-ver2').value = matched.id;
+      }
+    }
+
+    async function compareWithVersion(pageId, fromVersionId, toVersionId) {
+      switchTab('comparator');
+      document.getElementById('comp-page-select').value = pageId;
+
+      if (!currentComparatorVersions || currentComparatorVersions.length === 0 || currentComparatorVersions[0]?.page_id !== pageId) {
+        try {
+          const res = await fetch(`/api/pages/${pageId}/timeline`);
+          currentComparatorVersions = await res.json();
+          
+          const verOptions = currentComparatorVersions.map(v => 
+            `<option value="${v.id}">Version ${v.version_number} — ${new Date(v.observed_at).toLocaleString()}</option>`
+          ).join('');
+
+          document.getElementById('comp-ver1').innerHTML = '<option value="">Initial Baseline</option>' + verOptions;
+          document.getElementById('comp-ver2').innerHTML = verOptions;
+        } catch (_) {}
+      }
+
+      if (fromVersionId) {
+        document.getElementById('comp-ver1').value = fromVersionId;
+        const v1 = currentComparatorVersions.find(v => v.id === fromVersionId);
+        if (v1) {
+          document.getElementById('comp-date1').value = formatDateTimeLocal(v1.observed_at);
+          const d1Disp = document.getElementById('comp-date1-display');
+          if (d1Disp) d1Disp.innerText = `Observed: ${new Date(v1.observed_at).toLocaleString()}`;
+        }
+      } else {
+        document.getElementById('comp-ver1').value = '';
+        document.getElementById('comp-date1').value = '';
+        const d1Disp = document.getElementById('comp-date1-display');
+        if (d1Disp) d1Disp.innerText = 'Initial baseline';
+      }
+
+      if (toVersionId) {
+        document.getElementById('comp-ver2').value = toVersionId;
+        const v2 = currentComparatorVersions.find(v => v.id === toVersionId);
+        if (v2) {
+          document.getElementById('comp-date2').value = formatDateTimeLocal(v2.observed_at);
+          const d2Disp = document.getElementById('comp-date2-display');
+          if (d2Disp) d2Disp.innerText = `Observed: ${new Date(v2.observed_at).toLocaleString()}`;
+        }
+      }
+
+      runDirectComparison(pageId, fromVersionId, toVersionId);
+    }
+
+    async function runDirectComparison(pageId, fromVersionId, toVersionId) {
+      const results = document.getElementById('comp-results');
+      results.classList.remove('hidden');
+      document.getElementById('comp-summary-text').innerText = 'Analyzing deterministic structured changes...';
+
+      try {
+        const res = await fetch(`/api/pages/${pageId}/compare?from=${fromVersionId || ''}&to=${toVersionId}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to compare versions');
+
+        renderComparisonData(data);
+      } catch (err) {
+        handleFail(err, 'Comparison Failed');
+      }
+    }
+
+    async function runComparison() {
+      const pageId = document.getElementById('comp-page-select').value;
+      const v1 = document.getElementById('comp-ver1').value;
+      const v2 = document.getElementById('comp-ver2').value;
+      const d1 = document.getElementById('comp-date1').value;
+      const d2 = document.getElementById('comp-date2').value;
+
+      if (!pageId) {
+        showToast('Please select a monitored page', 'warning', 'Selection Required');
+        return;
+      }
+
+      if (v2) {
+        runDirectComparison(pageId, v1 || null, v2);
+        return;
+      }
+
+      if (!d1 || !d2) {
+        showToast('Please select both versions or historical dates to compare', 'warning', 'Selection Required');
+        return;
+      }
+
+      const results = document.getElementById('comp-results');
+      results.classList.remove('hidden');
+      document.getElementById('comp-summary-text').innerText = 'Resolving as-of versions and computing structured diff...';
+
+      try {
+        const res = await fetch(`/api/pages/${pageId}/compare-dates?date1=${encodeURIComponent(d1)}&date2=${encodeURIComponent(d2)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to compare dates');
+
+        renderComparisonData(data);
+      } catch (err) {
+        handleFail(err, 'Comparison Failed');
+      }
+    }
+
+    function renderComparisonData(data) {
+      document.getElementById('comp-summary-text').innerText = data.changeSummary || 'No summary available.';
+
+      const bullets = document.getElementById('comp-summary-bullets');
+      bullets.innerHTML = `
+        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">${data.diff.summary_counts.added} Added</span>
+        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">${data.diff.summary_counts.removed} Removed</span>
+        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">${data.diff.summary_counts.modified} Modified</span>
+      `;
+
+      if (data.fromVersion) {
+        document.getElementById('comp-left-title').innerText = `Version ${data.fromVersion.version_number}`;
+        document.getElementById('comp-left-time').innerText = new Date(data.fromVersion.observed_at).toLocaleString();
+        document.getElementById('comp-left-img').src = `/api/artifacts/${data.fromVersion.screenshot_artifact_path.replace(/\\/g, '/')}`;
+        document.getElementById('comp-date1').value = formatDateTimeLocal(data.fromVersion.observed_at);
+        const d1Disp = document.getElementById('comp-date1-display');
+        if (d1Disp) d1Disp.innerText = `Observed: ${new Date(data.fromVersion.observed_at).toLocaleString()}`;
+        const ver1Select = document.getElementById('comp-ver1');
+        if (ver1Select && data.fromVersion.id) ver1Select.value = data.fromVersion.id;
+      } else {
+        document.getElementById('comp-left-title').innerText = 'Initial Baseline';
+        document.getElementById('comp-left-time').innerText = 'Baseline';
+        document.getElementById('comp-left-img').src = '';
+        document.getElementById('comp-date1').value = '';
+        const d1Disp = document.getElementById('comp-date1-display');
+        if (d1Disp) d1Disp.innerText = 'Initial baseline';
+        const ver1Select = document.getElementById('comp-ver1');
+        if (ver1Select) ver1Select.value = '';
+      }
+
+      document.getElementById('comp-right-title').innerText = `Version ${data.toVersion.version_number}`;
+      document.getElementById('comp-right-time').innerText = new Date(data.toVersion.observed_at).toLocaleString();
+      document.getElementById('comp-right-img').src = `/api/artifacts/${data.toVersion.screenshot_artifact_path.replace(/\\/g, '/')}`;
+      document.getElementById('comp-date2').value = formatDateTimeLocal(data.toVersion.observed_at);
+      const d2Disp = document.getElementById('comp-date2-display');
+      if (d2Disp) d2Disp.innerText = `Observed: ${new Date(data.toVersion.observed_at).toLocaleString()}`;
+      const ver2Select = document.getElementById('comp-ver2');
+      if (ver2Select && data.toVersion.id) ver2Select.value = data.toVersion.id;
+
+      // Diff Sections
+      const diffContainer = document.getElementById('comp-diff-sections');
+      let html = '';
+
+      if (data.diff.modified.length > 0) {
+        html += `<h4 class="text-xs font-bold text-amber-700 uppercase tracking-wider">Modified Sections (${data.diff.modified.length})</h4>`;
+        html += data.diff.modified.map(m => `
+          <div class="bg-[#fbfbfa] p-4 rounded-xl border border-amber-200 space-y-2">
+            <span class="font-bold text-xs text-slate-800">${escapeHtml(m.section)}</span>
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div class="bg-rose-50 border border-rose-200 p-2.5 rounded-lg">
+                <span class="block text-[10px] uppercase font-bold text-rose-700 mb-1">Before:</span>
+                <pre class="text-slate-700 whitespace-pre-wrap font-mono text-[11px]">${escapeHtml(m.before || '')}</pre>
+              </div>
+              <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-lg">
+                <span class="block text-[10px] uppercase font-bold text-emerald-700 mb-1">After:</span>
+                <pre class="text-slate-700 whitespace-pre-wrap font-mono text-[11px]">${escapeHtml(m.after || '')}</pre>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      if (data.diff.added.length > 0) {
+        html += `<h4 class="text-xs font-bold text-emerald-700 uppercase tracking-wider pt-2">Added Sections (${data.diff.added.length})</h4>`;
+        html += data.diff.added.map(a => `
+          <div class="bg-[#fbfbfa] p-3.5 rounded-xl border border-emerald-200">
+            <span class="font-bold text-xs text-emerald-800">${escapeHtml(a.section)}</span>
+            <pre class="text-xs text-slate-700 mt-1 whitespace-pre-wrap font-mono text-[11px]">${escapeHtml(a.value || '')}</pre>
+          </div>
+        `).join('');
+      }
+
+      if (data.diff.removed.length > 0) {
+        html += `<h4 class="text-xs font-bold text-rose-700 uppercase tracking-wider pt-2">Removed Sections (${data.diff.removed.length})</h4>`;
+        html += data.diff.removed.map(r => `
+          <div class="bg-[#fbfbfa] p-3.5 rounded-xl border border-rose-200">
+            <span class="font-bold text-xs text-rose-800">${escapeHtml(r.section)}</span>
+            <pre class="text-xs text-slate-700 mt-1 whitespace-pre-wrap font-mono text-[11px]">${escapeHtml(r.value || '')}</pre>
+          </div>
+        `).join('');
+      }
+
+      diffContainer.innerHTML = html || '<div class="text-slate-500 text-xs">No structural differences found.</div>';
+    }
+
+    async function askHistoricalQuestion() {
+      const pageId = document.getElementById('qa-page-select').value;
+      const asOfDate = document.getElementById('qa-as-of-date').value;
+      const question = document.getElementById('qa-question').value;
+
+      if (!pageId) {
+        showToast('Please select a monitored webpage', 'warning', 'Selection Required');
+        return;
+      }
+      if (!asOfDate) {
+        showToast('Please select a historical as-of date & time', 'warning', 'Date Required');
+        return;
+      }
+      if (!question.trim()) {
+        showToast('Please enter your question to ask history', 'warning', 'Question Required');
+        return;
+      }
+
+      const resultBox = document.getElementById('qa-result-box');
+      resultBox.classList.remove('hidden');
+      document.getElementById('qa-answer-text').innerText = 'Querying immutable version history...';
+
+      try {
+        const res = await fetch(`/api/pages/${pageId}/ask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ asOfDate, question })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to generate historical answer');
+
+        document.getElementById('qa-answer-text').innerText = data.answer;
+        document.getElementById('qa-excerpt').innerText = data.citedContentExcerpt;
+        document.getElementById('qa-screenshot').src = data.screenshotUrl;
+        showToast('Historical answer generated from archived evidence', 'success', 'Answer Grounded');
+      } catch (err) {
+        handleFail(err, 'Historical Q&A Failed');
+        document.getElementById('qa-answer-text').innerText = `Error: ${err.message}`;
+      }
+    }
+
+    async function loadRecentRuns() {
+      try {
+        const res = await fetch('/api/runs?limit=30');
+        if (!res.ok) throw new Error('Failed to retrieve recent runs: ' + res.statusText);
+        const runs = await res.json();
+        const tbody = document.getElementById('runs-table-body');
+
+        tbody.innerHTML = runs.map(r => `
+          <tr class="hover:bg-[#fbfbfa] transition">
+            <td class="px-6 py-3.5 font-medium text-slate-900">${escapeHtml(r.page_name || 'N/A')}</td>
+            <td class="px-6 py-3.5 capitalize text-xs text-slate-500">${r.trigger_type}</td>
+            <td class="px-6 py-3.5">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${r.status === 'succeeded' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (r.status === 'partial_success' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200')}">
+                <span class="w-1.5 h-1.5 rounded-full ${r.status === 'succeeded' ? 'bg-emerald-500' : (r.status === 'partial_success' ? 'bg-amber-500' : 'bg-rose-500')} mr-1"></span>
+                ${r.status}
+              </span>
+            </td>
+            <td class="px-6 py-3.5 text-xs text-slate-600">${r.monitor_status}</td>
+            <td class="px-6 py-3.5 text-xs text-slate-600">${r.browser_status}</td>
+            <td class="px-6 py-3.5 text-xs text-slate-400 font-mono">${r.completed_at ? new Date(r.completed_at).toLocaleString() : 'Running...'}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        handleFail(err, 'Failed to Load Runs');
+      }
+    }
+
+    function switchTab(tab) {
+      ['dashboard', 'timeline', 'comparator', 'qa', 'runs'].forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        if (view) view.classList.add('hidden');
+        const tabBtn = document.getElementById(`tab-${t}`);
+        if (tabBtn) tabBtn.className = 'px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 transition';
+      });
+
+      const activeView = document.getElementById(`view-${tab}`);
+      if (activeView) activeView.classList.remove('hidden');
+
+      const activeTabBtn = document.getElementById(`tab-${tab}`);
+      if (activeTabBtn) activeTabBtn.className = 'px-3.5 py-1.5 rounded-lg text-slate-900 bg-white shadow-xs font-semibold transition';
+
+      if (tab === 'runs') loadRecentRuns();
+      if (tab === 'comparator') {
+        const compSelect = document.getElementById('comp-page-select');
+        if (compSelect && !compSelect.value && compSelect.options.length > 1) {
+          compSelect.selectedIndex = 1;
+          onComparatorPageSelect();
+        }
+      }
+    }
+
+    function populatePageSelects() {
+      const compSelect = document.getElementById('comp-page-select');
+      const qaSelect = document.getElementById('qa-page-select');
+      const prevComp = compSelect.value;
+      const prevQa = qaSelect.value;
+      const options = pages.map(p => `<option value="${p.id}">${escapeHtml(p.name)} (${p.canonical_url})</option>`).join('');
+
+      compSelect.innerHTML = `<option value="">Select page...</option>` + options;
+      qaSelect.innerHTML = `<option value="">Select page...</option>` + options;
+
+      if (prevComp && pages.some(p => p.id === prevComp)) {
+        compSelect.value = prevComp;
+      }
+      if (prevQa && pages.some(p => p.id === prevQa)) {
+        qaSelect.value = prevQa;
+      }
+    }
+
+    function openAddModal() {
+      document.getElementById('add-modal').classList.remove('hidden');
+    }
+
+    function closeAddModal() {
+      document.getElementById('add-modal').classList.add('hidden');
+      document.getElementById('modal-error').classList.add('hidden');
+    }
+
+    function onScheduleTypeChange() {
+      const type = document.getElementById('modal-schedule-type').value;
+      const fields = document.getElementById('modal-schedule-fields');
+      const weekdayField = document.getElementById('field-weekday');
+
+      if (type === 'hourly') {
+        fields.classList.add('hidden');
+      } else if (type === 'daily') {
+        fields.classList.remove('hidden');
+        weekdayField.classList.add('hidden');
+      } else if (type === 'weekly') {
+        fields.classList.remove('hidden');
+        weekdayField.classList.remove('hidden');
+      }
+    }
+
+    async function triggerPreflight() {
+      const urlInput = document.getElementById('modal-url');
+      const url = urlInput.value.trim();
+      if (!url) {
+        showToast('Please enter a valid webpage URL to preflight test', 'warning', 'URL Required');
+        return;
+      }
+
+      const box = document.getElementById('modal-preflight-box');
+      const statusEl = document.getElementById('modal-preflight-status');
+      const titleEl = document.getElementById('modal-preflight-title');
+      const detailsEl = document.getElementById('modal-preflight-details');
+
+      box.classList.remove('hidden');
+      statusEl.className = 'text-[10px] uppercase font-bold text-blue-600';
+      statusEl.innerText = 'Inspecting...';
+      titleEl.innerText = 'Connecting to TinyFish Fetch...';
+      detailsEl.innerText = '';
+
+      try {
+        const res = await fetch('/api/pages/preflight', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          statusEl.className = 'text-[10px] uppercase font-bold text-rose-600';
+          statusEl.innerText = 'Preflight Warning';
+          titleEl.innerText = data.errorMessage || 'Preflight inspection issue';
+          detailsEl.innerText = 'Target may still be monitored, but verify public access.';
+          showToast(data.errorMessage || 'Preflight inspection detected an issue', 'warning', 'Preflight Notice');
+          return;
+        }
+
+        statusEl.className = 'text-[10px] uppercase font-bold text-emerald-700';
+        statusEl.innerText = data.suitableForMonitoring ? 'Suitable' : 'Caution';
+        titleEl.innerText = data.pageTitle || url;
+        detailsEl.innerText = `Content Length: ${data.contentLength} chars | Final URL: ${data.finalUrl}`;
+        showToast('URL preflight verified successfully', 'success', 'Preflight Passed');
+
+        // Auto-fill name if empty
+        const nameInput = document.getElementById('modal-name');
+        if (!nameInput.value && data.pageTitle) {
+          nameInput.value = data.pageTitle.slice(0, 50);
+        }
+      } catch (err) {
+        statusEl.className = 'text-[10px] uppercase font-bold text-amber-700';
+        statusEl.innerText = 'Network error';
+        titleEl.innerText = err.message;
+        handleFail(err, 'Preflight Network Error');
+      }
+    }
+
+    async function submitAddMonitor(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('modal-error');
+      errBox.classList.add('hidden');
+      const submitBtn = document.getElementById('modal-submit-btn');
+
+      const url = document.getElementById('modal-url').value;
+      const name = document.getElementById('modal-name').value;
+      const category = document.getElementById('modal-category').value;
+      const objective = document.getElementById('modal-objective').value;
+      const schedule_type = document.getElementById('modal-schedule-type').value;
+      const timezone = document.getElementById('modal-tz').value;
+      const timeVal = document.getElementById('modal-time').value;
+
+      let schedule_hour = null;
+      let schedule_minute = null;
+      let schedule_weekday = null;
+
+      if (schedule_type !== 'hourly' && timeVal) {
+        const [h, m] = timeVal.split(':');
+        schedule_hour = parseInt(h, 10);
+        schedule_minute = parseInt(m, 10);
+      }
+
+      if (schedule_type === 'weekly') {
+        schedule_weekday = parseInt(document.getElementById('modal-weekday').value, 10);
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Setting up Monitor...';
+
+      try {
+        const res = await fetch('/api/pages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url,
+            name,
+            category,
+            monitor_objective: objective,
+            schedule_type,
+            schedule_timezone: timezone,
+            schedule_hour,
+            schedule_minute,
+            schedule_weekday,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to create monitor');
+
+        closeAddModal();
+        showToast(`Monitor created for "${name || url}"`, 'success', 'Monitor Added');
+        // Trigger initial baseline check
+        await fetch(`/api/pages/${data.id}/run`, { method: 'POST' });
+        await loadDashboard();
+      } catch (err) {
+        handleFail(err, 'Failed to Add Monitor');
+        errBox.innerText = err.message;
+        errBox.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Save Monitor';
+      }
+    }
+
+    function openImageModal(src) {
+      document.getElementById('modal-full-img').src = src;
+      document.getElementById('image-modal').classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+      document.getElementById('image-modal').classList.add('hidden');
+    }
+
+    let currentSummaryPageId = '';
+    let currentSummaryVersionId = '';
+
+    function switchSummaryTab(tab) {
+      const summaryContent = document.getElementById('vsum-content-summary');
+      const rawContent = document.getElementById('vsum-content-raw');
+      const tabSummary = document.getElementById('vsum-tab-summary');
+      const tabRaw = document.getElementById('vsum-tab-raw');
+
+      if (tab === 'summary') {
+        summaryContent.classList.remove('hidden');
+        rawContent.classList.add('hidden');
+        tabSummary.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0075eb] text-white shadow-xs';
+        tabRaw.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:text-slate-900 border border-[#e3e2e0]';
+      } else {
+        summaryContent.classList.add('hidden');
+        rawContent.classList.remove('hidden');
+        tabSummary.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:text-slate-900 border border-[#e3e2e0]';
+        tabRaw.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0075eb] text-white shadow-xs';
+        loadRawSnapshot();
+      }
+    }
+
+    async function openVersionGemmaSummary(pageId, versionId, versionNumber) {
+      currentSummaryPageId = pageId;
+      currentSummaryVersionId = versionId;
+
+      document.getElementById('vsum-title').innerText = `Gemma Page Summary — Version ${versionNumber}`;
+      document.getElementById('vsum-loading').classList.remove('hidden');
+      document.getElementById('vsum-loading').innerHTML = `
+        <i class="fa-solid fa-circle-notch fa-spin text-indigo-600 text-2xl mb-3"></i>
+        <p class="text-xs font-medium">Synthesizing snapshot with Google Gemma AI...</p>
+      `;
+      document.getElementById('vsum-body').classList.add('hidden');
+      switchSummaryTab('summary');
+      document.getElementById('version-summary-modal').classList.remove('hidden');
+
+      try {
+        const res = await fetch(`/api/pages/${pageId}/versions/${versionId}/summary`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to fetch summary');
+
+        document.getElementById('vsum-exec').innerText = data.summary.executiveSummary;
+
+        const bulletsContainer = document.getElementById('vsum-bullets');
+        bulletsContainer.innerHTML = (data.summary.keyPoints || []).map(p => `
+          <li class="flex items-start space-x-2">
+            <i class="fa-solid fa-sparkles text-indigo-500 text-xs mt-1"></i>
+            <span class="leading-relaxed font-medium text-slate-700">${escapeHtml(p)}</span>
+          </li>
+        `).join('');
+
+        document.getElementById('vsum-category').innerText = data.summary.categoryContext;
+        document.getElementById('vsum-model').innerText = `${data.summary.model} (${data.summary.provider})`;
+        document.getElementById('vsum-size').innerText = `${data.snapshotLength.toLocaleString()} characters`;
+
+        const headingsContainer = document.getElementById('vsum-headings');
+        headingsContainer.innerHTML = (data.summary.headings || []).map(h => `
+          <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-700 border border-[#e3e2e0] truncate max-w-xs">${escapeHtml(h)}</span>
+        `).join('');
+
+        document.getElementById('vsum-loading').classList.add('hidden');
+        document.getElementById('vsum-body').classList.remove('hidden');
+      } catch (err) {
+        handleFail(err, 'Gemma Summary Failed');
+        document.getElementById('vsum-loading').innerHTML = `
+          <div class="text-rose-600 p-4 bg-rose-50 rounded-xl border border-rose-200 text-xs">
+            <i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Error loading Gemma summary: ${escapeHtml(err.message)}
+          </div>
+        `;
+      }
+    }
+
+    async function loadRawSnapshot() {
+      const rawText = document.getElementById('vsum-raw-text');
+      if (rawText.innerText && rawText.innerText !== 'Loading snapshot.md...') return;
+
+      rawText.innerText = 'Loading snapshot.md...';
+      try {
+        const res = await fetch(`/api/pages/${currentSummaryPageId}/versions/${currentSummaryVersionId}/snapshot`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load snapshot.md');
+        rawText.innerText = data.markdown;
+      } catch (err) {
+        handleFail(err, 'Failed to Load Snapshot');
+        rawText.innerText = `Error: ${err.message}`;
+      }
+    }
+
+    function openSnapshotMarkdownModal(pageId, versionId, versionNumber) {
+      currentSummaryPageId = pageId;
+      currentSummaryVersionId = versionId;
+      document.getElementById('vsum-title').innerText = `snapshot.md — Version ${versionNumber}`;
+      document.getElementById('vsum-raw-text').innerText = '';
+      switchSummaryTab('raw');
+      document.getElementById('version-summary-modal').classList.remove('hidden');
+    }
+
+    function closeVersionSummaryModal() {
+      document.getElementById('version-summary-modal').classList.add('hidden');
+    }
+
+    function setCategoryFilter(cat) {
+      currentCategoryFilter = cat;
+      document.querySelectorAll('.category-pill').forEach(p => {
+        p.className = (p.innerText === cat || (!cat && p.innerText === 'All'))
+          ? 'category-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0075eb] text-white shadow-xs'
+          : 'category-pill px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-slate-600 border border-[#e3e2e0] hover:bg-slate-50';
+      });
+      renderPagesGrid();
+    }
+
+    let searchTimeout;
+    function debounceSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(renderPagesGrid, 200);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
